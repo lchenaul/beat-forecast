@@ -1,10 +1,13 @@
 /* =========================
    BeatForecast - theme.css
-   Cohesive “report” look + full green frame (ALL sides)
-   Sidebar cleaned up + consistent inputs + cards/chips preserved
+   Report look + fixed full green frame
+   Fix:
+   - Sidebar was being clipped by frame overlay
+   - Move sidebar INSIDE frame (no cut-off “Inputs”)
+   - Keep bottom breathing room (frame always visible)
    ========================= */
 
-/* ---------- Tokens (merged) ---------- */
+/* ---------- Tokens ---------- */
 :root{
   /* Brand greens */
   --green-900:#0B3D2E;
@@ -21,7 +24,6 @@
 
   /* Borders / shadow */
   --border:rgba(11,31,23,0.12);
-  --border-strong: rgba(19,122,83,0.35);
   --shadow:0 10px 24px rgba(0,0,0,0.06);
 
   /* Frame */
@@ -29,11 +31,22 @@
   --frame-width: 6px;
   --frame-radius: 28px;
   --frame-inset: 18px; /* distance from browser edge */
+
+  /* Space between frame and content */
+  --inner-pad: 14px;
+
+  /* Extra scroll breathing room so bottom frame is visible */
+  --bottom-breathing-room: 56px;
+
+  /* Convenience: “safe” inset inside the frame */
+  --safe: calc(var(--frame-inset) + var(--inner-pad));
 }
 
-/* ---------- Page background ---------- */
+/* ---------- Page background + scroll sanity ---------- */
 html, body{
+  height: 100%;
   background: var(--mint-050) !important;
+  overflow: auto !important;
 }
 
 /* Hide Streamlit chrome */
@@ -47,44 +60,50 @@ header[data-testid="stHeader"]{
 footer{ visibility: hidden; }
 
 /* =========================================================
-   ✅ FULL GREEN FRAME THAT ALWAYS SHOWS ALL 4 SIDES
-   This draws a fixed frame in the viewport so the bottom
-   never “disappears” due to scrolling/layout wrappers.
+   ✅ Fixed full frame overlay (does NOT affect layout)
    ========================================================= */
-div[data-testid="stAppViewContainer"]{
-  position: relative !important;
+.stApp{
+  min-height: 100vh !important;
   background: var(--mint-050) !important;
+
+  /* Only main page needs padding;
+     sidebar will be handled separately below */
+  padding:
+    var(--safe)
+    var(--safe)
+    calc(var(--safe) + var(--bottom-breathing-room))
+    var(--safe) !important;
+
+  box-sizing: border-box !important;
 }
 
-/* The frame */
-div[data-testid="stAppViewContainer"]::before{
+.stApp::before{
   content: "" !important;
   position: fixed !important;
   top: var(--frame-inset) !important;
   left: var(--frame-inset) !important;
   right: var(--frame-inset) !important;
   bottom: var(--frame-inset) !important;
-
   border: var(--frame-width) solid var(--frame-color) !important;
   border-radius: var(--frame-radius) !important;
-
   pointer-events: none !important;
-  z-index: 9999 !important;
+  z-index: 999999 !important;
 }
 
-/* Give the app breathing room INSIDE the frame */
+/* =========================================================
+   ✅ “Report page” surface (white card behind MAIN content)
+   ========================================================= */
 div[data-testid="stAppViewContainer"]{
-  padding: calc(var(--frame-inset) + 10px) !important;
-  box-sizing: border-box !important;
+  background: transparent !important;
 }
-
-/* Make the “app surface” white so it feels like a report page */
 div[data-testid="stAppViewContainer"] > div{
   background: #fff !important;
   border: 1px solid var(--border) !important;
   border-radius: 18px !important;
   box-shadow: var(--shadow) !important;
-  overflow: hidden !important;
+
+  /* do not clip content */
+  overflow: visible !important;
 }
 
 /* ---------- Main container sizing ---------- */
@@ -94,14 +113,44 @@ div[data-testid="stAppViewContainer"] > div{
   padding-bottom: 2.6rem !important;
 }
 
-/* ---------- Sidebar ---------- */
+/* =========================================================
+   ✅ Sidebar: move it INSIDE the frame so it never clips
+   This is the real fix for “Inputs” being cut off.
+   ========================================================= */
 section[data-testid="stSidebar"]{
   background: var(--mint-100) !important;
   border-right: 1px solid var(--border) !important;
+
+  /* Pull sidebar in from the left so it sits inside the frame */
+  margin-left: var(--safe) !important;
+  margin-top: var(--safe) !important;
+  margin-bottom: var(--safe) !important;
+
+  /* Make it look intentional */
+  border-radius: 18px !important;
+  overflow: hidden !important;
+
+  /* Keep sidebar height within the frame */
+  height: calc(100vh - (2 * var(--safe))) !important;
+
+  /* Streamlit sidebar behavior */
+  position: sticky !important;
+  top: var(--safe) !important;
 }
+
+/* Sidebar content scrolls internally */
 section[data-testid="stSidebar"] > div{
   background: transparent !important;
   padding-top: 10px !important;
+
+  height: calc(100vh - (2 * var(--safe))) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-bottom: 24px !important;
+
+  /* Extra left padding so text never feels tight */
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 
 /* Remove expander “boxed panels” */
@@ -131,10 +180,17 @@ section[data-testid="stSidebar"] hr{
   background: rgba(11,31,23,0.10) !important;
   margin: 14px 0 !important;
 }
-
 section[data-testid="stSidebar"] img{
   border-radius: 14px !important;
 }
+
+/* Sidebar scrollbar */
+section[data-testid="stSidebar"] > div::-webkit-scrollbar{ width: 10px; }
+section[data-testid="stSidebar"] > div::-webkit-scrollbar-thumb{
+  background: rgba(11,31,23,0.20);
+  border-radius: 999px;
+}
+section[data-testid="stSidebar"] > div::-webkit-scrollbar-track{ background: transparent; }
 
 /* ---------- Typography ---------- */
 h1,h2,h3{ letter-spacing:-0.02em; color: var(--text) !important; }
@@ -150,11 +206,9 @@ div.stButton > button{
   box-shadow: var(--shadow) !important;
   font-weight: 800 !important;
 }
-div.stButton > button:hover{
-  filter: brightness(1.02) !important;
-}
+div.stButton > button:hover{ filter: brightness(1.02) !important; }
 
-/* ---------- Inputs (consistent look) ---------- */
+/* ---------- Inputs ---------- */
 .stTextInput input,
 .stNumberInput input,
 .stTextArea textarea{
@@ -162,8 +216,6 @@ div.stButton > button:hover{
   border: 1px solid rgba(19,122,83,0.18) !important;
   background: rgba(255,255,255,0.95) !important;
 }
-
-/* Focus */
 .stTextInput input:focus,
 .stNumberInput input:focus,
 .stTextArea textarea:focus{
@@ -172,9 +224,7 @@ div.stButton > button:hover{
   outline: none !important;
 }
 
-/* =========================================================
-   ✅ Selectbox styling (remove “pill” look)
-   ========================================================= */
+/* ---------- Selectbox styling ---------- */
 section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"]{
   width: 100% !important;
   border-radius: 12px !important;
@@ -186,7 +236,7 @@ section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="s
   border-radius: 12px !important;
   background: transparent !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"] div[role="button"]{
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] div[role="button"]{
   min-height: 44px !important;
   padding: 8px 12px !important;
   border-radius: 12px !important;
@@ -201,14 +251,10 @@ section[data-testid="stSidebar"] div[data-testid="stSelectbox"] span[aria-label=
   border-radius: 0 !important;
   box-shadow: none !important;
 }
-section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"] *{
-  box-shadow: none !important;
-}
-section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"] svg{
-  opacity: 0.75 !important;
-}
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"] *{ box-shadow: none !important; }
+section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="select"] svg{ opacity: 0.75 !important; }
 
-/* ---------- “Report” card (kept from original) ---------- */
+/* ---------- Cards ---------- */
 .card{
   border: 1px solid var(--border) !important;
   border-radius: 18px !important;
@@ -235,7 +281,7 @@ section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="s
   margin-top: 6px !important;
 }
 
-/* ---------- Recommendation boxes (kept) ---------- */
+/* ---------- Recommendation boxes ---------- */
 .rec{
   border-radius: 18px !important;
   padding: 16px !important;
@@ -248,7 +294,7 @@ section[data-testid="stSidebar"] div[data-testid="stSelectbox"] [data-baseweb="s
 .rec-title{ font-size: 14px !important; font-weight: 850 !important; margin-bottom: 6px !important; color: var(--text) !important; }
 .rec-text{ margin: 0 !important; color: rgba(11,31,23,0.78) !important; }
 
-/* ---------- Mint chips (kept) ---------- */
+/* ---------- Chips ---------- */
 .chip{
   display:inline-block !important;
   padding: 6px 10px !important;
@@ -289,9 +335,7 @@ div[data-testid="stDataFrame"]{
   overflow: hidden !important;
 }
 
-/* =========================================================
-   ✅ st.info / alerts -> light green (for “Upload a song…”)
-   ========================================================= */
+/* ---------- Alerts (light green) ---------- */
 div[data-testid="stAlert"]{
   border-radius: 14px !important;
   border: 1px solid rgba(19,122,83,0.22) !important;
@@ -305,10 +349,7 @@ div[data-testid="stAlert"] a{
   font-weight: 800 !important;
 }
 
-/* =========================================================
-   ✅ Empty metric highlight pill (for “—” values)
-   (You’ll use this class in streamlit_app.py HTML snippets)
-   ========================================================= */
+/* ---------- Empty metric pill ---------- */
 .metric-empty{
   display:inline-block !important;
   padding: 6px 10px !important;
@@ -324,38 +365,4 @@ div[data-testid="stAlert"] a{
   font-size: 14px !important;
   font-weight: 850 !important;
   opacity: 0.95 !important;
-}
-
-/* =========================================================
-   ✅ Sidebar gets its OWN scrollbar (independent scroll)
-   ========================================================= */
-
-/* Make the sidebar take full viewport height and scroll internally */
-section[data-testid="stSidebar"]{
-  position: sticky !important;
-  top: 0 !important;
-  height: 100vh !important;
-  overflow: hidden !important; /* prevent double scrollbars on the outer shell */
-}
-
-/* The sidebar content wrapper becomes the scrolling area */
-section[data-testid="stSidebar"] > div{
-  height: 100vh !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-
-  /* keep content from hiding under the browser edge */
-  padding-bottom: 24px !important;
-}
-
-/* Optional: nicer scrollbar */
-section[data-testid="stSidebar"] > div::-webkit-scrollbar{
-  width: 10px;
-}
-section[data-testid="stSidebar"] > div::-webkit-scrollbar-thumb{
-  background: rgba(11,31,23,0.20);
-  border-radius: 999px;
-}
-section[data-testid="stSidebar"] > div::-webkit-scrollbar-track{
-  background: transparent;
 }

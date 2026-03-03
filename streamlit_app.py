@@ -449,8 +449,8 @@ run = st.sidebar.button("Run Forecast", type="primary", use_container_width=True
 # ============================================================
 # Tabs
 # ============================================================
-tab_overview, tab_features, tab_compare, tab_debug = st.tabs(
-    ["Overview", "Song Features", "Compare Scenarios", "Debug"]
+tab_overview, tab_features, tab_compare = st.tabs(
+    ["Overview", "Song Features", "Compare Scenarios"]
 )
 
 # ============================================================
@@ -830,47 +830,3 @@ with tab_compare:
             use_container_width=True,
         )
 
-# ============================================================
-# DEBUG TAB
-# ============================================================
-with tab_debug:
-    st.subheader("Debug")
-    st.caption("Shows extraction + model input rows used in prediction.")
-
-    d1, d2 = st.columns([1, 1])
-    with d1:
-        st.markdown("### Extraction diagnostics")
-        if audio_feats is None:
-            st.info("Upload a song to populate diagnostics.")
-        else:
-            st.write(audio_feats)
-
-    with d2:
-        st.markdown("### Model input rows")
-        if X_reg is None and X_hit is None:
-            st.info("Run Forecast to generate model inputs.")
-        else:
-            if X_reg is not None:
-                st.markdown("**Regression input (X_reg)**")
-                st.dataframe(X_reg, use_container_width=True, hide_index=True)
-            if X_hit is not None:
-                st.markdown("**Hit input (X_hit)**")
-                st.dataframe(X_hit, use_container_width=True, hide_index=True)
-
-    st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
-    st.markdown("### Inputs used")
-    st.dataframe(inputs, use_container_width=True, hide_index=True)
-
-st.markdown(
-    """
-    <div style="
-        background:#1e5f3a;
-        height:14px;
-        width:220px;
-        border-radius:6px;
-        margin-top:6px;
-        margin-bottom:20px;">
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
