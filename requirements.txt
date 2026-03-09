@@ -2,7 +2,7 @@ streamlit==1.42.2
 numpy==1.26.4
 pandas==2.2.2
 scipy==1.14.1
-scikit-learn==1.5.1
+scikit-learn==1.6.1
 joblib==1.4.2
 librosa==0.10.2.post1
 numba==0.60.0
