@@ -1,22 +1,27 @@
-from pathlib import Path
 import joblib
-import numpy as np
-import sklearn
+from pathlib import Path
 
-print("NumPy:", np.__version__)
-print("scikit-learn:", sklearn.__version__)
+BASE_DIR = Path(__file__).resolve().parent
 
-BASE = Path(__file__).resolve().parent
-IN_PATH = BASE / "hit_gb_pipeline_wade.joblib"
-OUT_PATH = BASE / "hit_gb_pipeline_wade_py311.joblib"
+candidates = [
+    BASE_DIR / "models" / "hit_gb_pipeline_wade_compat.joblib",
+    BASE_DIR / "hit_gb_pipeline_wade_compat.joblib",
+    BASE_DIR / "hit_gb_pipeline_wade.joblib",
+]
 
-print("IN_PATH:", IN_PATH)
-print("Exists:", IN_PATH.exists())
+model_path = None
+for p in candidates:
+    if p.exists():
+        model_path = p
+        break
 
-try:
-    model = joblib.load(IN_PATH.as_posix())
-    joblib.dump(model, OUT_PATH.as_posix(), compress=3)
-    print("Saved:", OUT_PATH)
-except Exception as e:
-    print("FAILED to load model:", repr(e))
-    raise
+if model_path is None:
+    raise FileNotFoundError("Could not find hit model file to resave.")
+
+print(f"Loading model from: {model_path}")
+model = joblib.load(model_path.as_posix())
+
+print("Resaving model with current local environment...")
+joblib.dump(model, model_path.as_posix())
+
+print(f"Done. Resaved: {model_path}")
